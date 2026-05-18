@@ -28,6 +28,14 @@ mongoose.connect(uri, {
   });
 // ------------------------------------------------
 
+const authRoutes = require('./routes/auth');
+
+// Middleware para leer JSON
+app.use(express.json());
+
+// Usar las rutas
+app.use('/api/auth', authRoutes);
+
 // Ruta de prueba
 app.get('/', (req, res) => {
   res.send('Servidor de mi Proyecto DAW funcionando 🚀');
