@@ -1,23 +1,31 @@
+import React, { useEffect } from 'react';
+import { anunciosMock } from './mocks/anunciosMock';
+
 function App() {
+  useEffect(() => {
+    // Esto mostrará los anuncios de mentira en la consola del navegador
+    console.log("¡Cargando anuncios desde el Mock del tutor! 👇");
+    console.table(anunciosMock);
+  }, []);
+
   return (
-    // Estas clases de Tailwind: fondo gris, pantalla completa, centrado
-    <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center text-white p-4">
+    <div style={{ padding: '20px', fontFamily: 'sans-serif' }}>
+      <h1>IEShare Betxí - Modo Mocks Activo 🚀</h1>
+      <p>Mira la consola del navegador (F12) para ver los datos cargados.</p>
       
-      {/* Texto con gradiente, negrita y sombra */}
-      <h1 className="text-5xl md:text-7xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600 mb-4">
-        ¡Logrado!
-      </h1>
+      <hr />
       
-      <p className="text-lg text-slate-300 font-medium tracking-wide">
-        React + Vite + Tailwind CSS configurados correctamente.
-      </p>
-
-      <div className="mt-8 p-6 bg-slate-800 rounded-2xl border border-slate-700 shadow-2xl">
-        <code className="text-purple-400">Practicas 1º DAW - Entorno Listo</code>
-      </div>
-
+      {/* Pintamos los títulos en la pantalla para comprobar que funciona */}
+      <h2>Anuncios detectados:</h2>
+      <ul>
+        {anunciosMock.map((anuncio) => (
+          <li key={anuncio._id}>
+            <strong>{anuncio.titulo}</strong> - {anuncio.precio === 0 ? 'Gratis/Intercambio' : `${anuncio.precio}€`}
+          </li>
+        ))}
+      </ul>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
