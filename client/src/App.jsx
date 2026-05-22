@@ -2,16 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { anunciosMock } from './mocks/anunciosMock';
 import Login from "./pages/Login.jsx";
 import Register from "./pages/Register.jsx";
-import './App.css'; // Asegúrate de importar el CSS modificado
+import './App.css';
 
 function App() {
-  // Estado para gestionar el usuario logueado
   const [user, setUser] = useState(null);
-  
-  // Estado para controlar qué pantalla de autenticación ver ('login' o 'register')
   const [screen, setScreen] = useState('login');
 
-  // Efecto existente para tus Mocks + persistencia de sesión
   useEffect(() => {
     console.log("¡Cargando todos los datos del Mock! 👇");
     console.table(anunciosMock);
@@ -23,18 +19,20 @@ function App() {
     }
   }, []);
 
-  // Controladores de Login y Logout
-  const handleLogin = (userData) => {
-    setUser(userData);
-    localStorage.setItem('loggedUser', JSON.stringify(userData));
+  // Aquí recibimos el "data" completo que envía Express (con usuario y token)
+  const handleLogin = (authData) => {
+    setUser(authData.usuario); 
+    // Guardamos todo el objeto (token incluido) para futuras peticiones a la API
+    localStorage.setItem('loggedUser', JSON.stringify(authData.usuario));
+    localStorage.setItem('token', authData.token);
   };
 
   const handleLogout = () => {
     setUser(null);
     localStorage.removeItem('loggedUser');
+    localStorage.removeItem('token');
   };
 
-  // VISTA 1: Si NO hay usuario, mostramos Login o Registro
   if (!user) {
     return (
       <>
@@ -53,13 +51,13 @@ function App() {
     );
   }
 
-  // VISTA 2: Si SÍ hay usuario, mostramos el tablón de anuncios protegido
   return (
     <div className="dashboard-container">
       <header className="dashboard-header">
         <div>
           <h1 className="dashboard-title">IEShare Betxí - Tablón de Anuncios 🚀</h1>
-          <p className="dashboard-subtitle">Modo Mocks Activo • Conectado como <strong>{user.email}</strong></p>
+          {/* Ahora usamos user.nombre que viene directo de tu base de datos de MongoDB */}
+          <p className="dashboard-subtitle">Hola, <strong>{user.nombre}</strong> • Conectado como <strong>{user.email}</strong></p>
         </div>
         <button onClick={handleLogout} className="logout-button">
           Cerrar Sesión
@@ -68,40 +66,21 @@ function App() {
       
       <hr className="separator" />
       
-      {/* Contenedor de las tarjetas de anuncios */}
       <div className="ads-grid">
         {anunciosMock.map((anuncio) => (
           <div key={anuncio._id} className="ad-card">
-            
-            {/* 1. Imagen del anuncio */}
-            <img 
-              src={anuncio.imagen} 
-              alt={anuncio.titulo} 
-              className="ad-image" 
-            />
-
-            {/* 2. Categoría */}
-            <span className="ad-category">
-              {anuncio.categoria}
-            </span>
-
-            {/* 3. Título y Precio */}
+            <img src={anuncio.imagen} alt={anuncio.titulo} className="ad-image" />
+            <span className="ad-category">{anuncio.categoria}</span>
             <h3 className="ad-title">{anuncio.titulo}</h3>
             <p className="ad-price">
               {anuncio.precio === 0 ? '🎁 Gratis / Intercambio' : `${anuncio.precio}€`}
             </p>
-
-            {/* 4. Descripción larga */}
             <p className="ad-description">{anuncio.descripcion}</p>
-            
             <hr className="ad-divider" />
-
-            {/* 5. Datos del Creador */}
             <div className="ad-author">
               <p>👤 <strong>Subido por:</strong> {anuncio.creador.nombre}</p>
               <p style={{ color: 'var(--text-muted)' }}>📧 {anuncio.creador.email}</p>
             </div>
-
           </div>
         ))}
       </div>
