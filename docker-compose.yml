@@ -1,6 +1,17 @@
 services:
+  database:
+    image: mongo:latest
+    container_name: ieshare_mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    environment:
+      - MONGO_INITDB_DATABASE=ieshare_betxi
+
   backend:
     build: ./server
+    container_name: ieshare_backend
     ports:
       - "5000:5000"
     volumes:
@@ -10,13 +21,22 @@ services:
       - ./server/.env
     environment:
       - NODE_ENV=development
+      - MONGO_URI=mongodb://database:27017/ieshare_betxi
+    depends_on:
+      - database
 
   frontend:
     build: ./client
+    container_name: ieshare_frontend
     ports:
       - "5173:5173"
     volumes:
       - ./client:/app
       - /app/node_modules
     environment:
-      - VITE_BACKEND_URL=http://localhost:5000
+      - VITE_BACKEND_URL=http://backend:5000
+    depends_on:
+      - backend
+
+volumes:
+  mongo_data:

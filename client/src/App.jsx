@@ -1,70 +1,109 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { anunciosMock } from './mocks/anunciosMock';
+import Login from "./pages/Login.jsx";
+import Register from "./pages/Register.jsx";
+import './App.css'; // Asegúrate de importar el CSS modificado
 
 function App() {
+  // Estado para gestionar el usuario logueado
+  const [user, setUser] = useState(null);
+  
+  // Estado para controlar qué pantalla de autenticación ver ('login' o 'register')
+  const [screen, setScreen] = useState('login');
+
+  // Efecto existente para tus Mocks + persistencia de sesión
   useEffect(() => {
     console.log("¡Cargando todos los datos del Mock! 👇");
     console.table(anunciosMock);
+
+    // Comprobar si ya había una sesión guardada en el navegador
+    const savedUser = localStorage.getItem('loggedUser');
+    if (savedUser) {
+      setUser(JSON.parse(savedUser));
+    }
   }, []);
 
+  // Controladores de Login y Logout
+  const handleLogin = (userData) => {
+    setUser(userData);
+    localStorage.setItem('loggedUser', JSON.stringify(userData));
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+    localStorage.removeItem('loggedUser');
+  };
+
+  // VISTA 1: Si NO hay usuario, mostramos Login o Registro
+  if (!user) {
+    return (
+      <>
+        {screen === 'login' ? (
+          <Login 
+            onLogin={handleLogin} 
+            onNavigateToRegister={() => setScreen('register')} 
+          />
+        ) : (
+          <Register 
+            onRegisterSuccess={() => setScreen('login')} 
+            onNavigateToLogin={() => setScreen('login')} 
+          />
+        )}
+      </>
+    );
+  }
+
+  // VISTA 2: Si SÍ hay usuario, mostramos el tablón de anuncios protegido
   return (
-    <div style={{ padding: '30px', fontFamily: 'Arial, sans-serif', backgroundColor: '#f4f4f9', minHeight: '100vh' }}>
-      <h1 style={{ color: '#333', textAlign: 'center' }}>IEShare Betxí - Tablón de Anuncios 🚀</h1>
-      <p style={{ textAlign: 'center', color: '#666' }}>Modo Mocks Activo (Datos de prueba para maquetar)</p>
+    <div className="dashboard-container">
+      <header className="dashboard-header">
+        <div>
+          <h1 className="dashboard-title">IEShare Betxí - Tablón de Anuncios 🚀</h1>
+          <p className="dashboard-subtitle">Modo Mocks Activo • Conectado como <strong>{user.email}</strong></p>
+        </div>
+        <button onClick={handleLogout} className="logout-button">
+          Cerrar Sesión
+        </button>
+      </header>
       
-      <hr style={{ margin: '30px 0', border: '0', borderTop: '1px solid #ccc' }} />
+      <hr className="separator" />
       
-      {/* Contenedor de las tarjetas */}
-      <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', justifyContent: 'center' }}>
-        
+      {/* Contenedor de las tarjetas de anuncios */}
+      <div className="ads-grid">
         {anunciosMock.map((anuncio) => (
-          <div key={anuncio._id} style={{
-            border: '1px solid #ddd',
-            borderRadius: '8px',
-            backgroundColor: '#fff',
-            width: '300px',
-            padding: '15px',
-            boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-          }}>
+          <div key={anuncio._id} className="ad-card">
+            
             {/* 1. Imagen del anuncio */}
             <img 
               src={anuncio.imagen} 
               alt={anuncio.titulo} 
-              style={{ width: '100%', height: '180px', objectFit: 'cover', borderRadius: '4px' }} 
+              className="ad-image" 
             />
 
-            {/* 2. Categoría en pequeñito */}
-            <span style={{ 
-              display: 'inline-block', 
-              backgroundColor: '#e2e8f0', 
-              color: '#4a5568', 
-              fontSize: '12px', 
-              padding: '3px 8px', 
-              borderRadius: '12px',
-              marginTop: '10px'
-            }}>
+            {/* 2. Categoría */}
+            <span className="ad-category">
               {anuncio.categoria}
             </span>
 
             {/* 3. Título y Precio */}
-            <h3 style={{ margin: '10px 0 5px 0', fontSize: '18px', color: '#2d3748' }}>{anuncio.titulo}</h3>
-            <p style={{ fontWeight: 'bold', color: '#3182ce', margin: '0 0 10px 0' }}>
+            <h3 className="ad-title">{anuncio.titulo}</h3>
+            <p className="ad-price">
               {anuncio.precio === 0 ? '🎁 Gratis / Intercambio' : `${anuncio.precio}€`}
             </p>
 
             {/* 4. Descripción larga */}
-            <p style={{ fontSize: '14px', color: '#718096', lineHeight: '1.4' }}>{anuncio.descripcion}</p>
+            <p className="ad-description">{anuncio.descripcion}</p>
             
-            <hr style={{ border: '0', borderTop: '1px solid #edf2f7', margin: '15px 0' }} />
+            <hr className="ad-divider" />
 
-            {/* 5. Datos del Creador (Anidado) */}
-            <div style={{ fontSize: '12px', color: '#4a5568' }}>
-              <p style={{ margin: '2px 0' }}>👤 <strong>Subido por:</strong> {anuncio.creador.nombre}</p>
-              <p style={{ margin: '2px 0', color: '#718096' }}>📧 {anuncio.creador.email}</p>
+            {/* 5. Datos del Creador */}
+            <div className="ad-author">
+              <p>👤 <strong>Subido por:</strong> {anuncio.creador.nombre}</p>
+              <p style={{ color: 'var(--text-muted)' }}>📧 {anuncio.creador.email}</p>
             </div>
+
           </div>
         ))}
-
       </div>
     </div>
   );
