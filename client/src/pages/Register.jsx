@@ -1,6 +1,7 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 
-export default function Register({ onRegisterSuccess, onNavigateToLogin }) {
+export default function Register({ onRegisterSuccess }) {
   const [nombre, setNombre] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -34,7 +35,7 @@ export default function Register({ onRegisterSuccess, onNavigateToLogin }) {
 
       if (response.ok) {
         alert('¡Usuario registrado con éxito en MongoDB! 🎉');
-        onRegisterSuccess(); // Vuelve automáticamente al Login
+        onRegisterSuccess(); // Vuelve automáticamente al Login cambiando la URL
       } else {
         alert(data.error || 'Error al registrar el usuario');
       }
@@ -97,12 +98,15 @@ export default function Register({ onRegisterSuccess, onNavigateToLogin }) {
             Registrarse
           </button>
         </form>
+
+        {/* FOOTER CORREGIDO CON REACT ROUTER */}
         <p className="auth-footer-text">
           ¿Ya tienes cuenta?{' '}
-          <span onClick={onNavigateToLogin} className="auth-link register-link">
+          <Link to="/login" className="auth-link register-link font-bold text-green-600 hover:underline">
             Inicia sesión
-          </span>
+          </Link>
         </p>
+
       </div>
     </div>
   );

@@ -24,17 +24,18 @@ mongoose.connect(uri, {
     console.log('   1. El firewall del instituto bloquea el puerto 27017.');
     console.log('   2. La contraseña en el .env es incorrecta.');
     console.log('   3. No has guardado los cambios en Atlas (0.0.0.0/0).');
-    // console.error(err); // Descomenta esta línea si quieres ver el error gigante otra vez
   });
 // ------------------------------------------------
 
 const authRoutes = require('./routes/auth');
+const postRoutes = require('./routes/posts'); // <--- NUEVO: Importamos las rutas de anuncios
 
 // Middleware para leer JSON
 app.use(express.json());
 
 // Usar las rutas
 app.use('/api/auth', authRoutes);
+app.use('/api/posts', postRoutes); // <--- NUEVO: Activamos el endpoint para los posts
 
 // Ruta de prueba
 app.get('/', (req, res) => {

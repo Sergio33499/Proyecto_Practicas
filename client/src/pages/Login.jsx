@@ -1,6 +1,7 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 
-export default function Login({ onLogin, onNavigateToRegister }) {
+export default function Login({ onLogin }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -70,12 +71,15 @@ export default function Login({ onLogin, onNavigateToRegister }) {
             Entrar
           </button>
         </form>
+        
+        {/* FOOTER CORREGIDO CON REACT ROUTER */}
         <p className="auth-footer-text">
           ¿No tienes cuenta?{' '}
-          <span onClick={onNavigateToRegister} className="auth-link login-link">
+          <Link to="/register" className="auth-link login-link font-bold text-green-600 hover:underline">
             Regístrate aquí
-          </span>
+          </Link>
         </p>
+        
       </div>
     </div>
   );
