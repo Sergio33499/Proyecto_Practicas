@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 
+// DEFINICIÓN ÚNICA DEL ESQUEMA CON TODAS TUS VALIDACIONES DEL IES BETXÍ
 const userSchema = new mongoose.Schema({
   nombre: {
     type: String,
@@ -23,10 +25,18 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, 'La contraseña es obligatoria'],
     minlength: 6
+  },
+  
+  // NUEVOS CAMPOS PARA LA VERIFICACIÓN DE CUENTA
+  verificado: { 
+    type: Boolean, 
+    default: false // Por defecto, nadie está verificado al registrarse hasta que pulse el botón
+  }, 
+  verifyToken: { 
+    type: String, 
+    default: null 
   }
 }, { timestamps: true }); // Esto añade automáticamente fecha de creación y actualización
-
-const bcrypt = require('bcryptjs');
 
 // Middleware de Mongoose: se ejecuta justo ANTES de guardar el usuario
 userSchema.pre('save', async function() {
