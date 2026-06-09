@@ -1,0 +1,19 @@
+[{
+  "_id": {
+    "$oid": "6a1d606bb37424f2234468ce"
+  },
+  "titulo": "Libro de Programacion",
+  "descripcion": "En buen estado, lo cambio por el de Entornos",
+  "tipo": "MATERIAL",
+  "modalidad": "OFREZCO",
+  "autor": {
+    "$oid": "6a1d5dd9ce73c7ab98927d99"
+  },
+  "createdAt": {
+    "$date": "2026-06-01T10:35:23.209Z"
+  },
+  "updatedAt": {
+    "$date": "2026-06-04T11:06:56.210Z"
+  },
+  "__v": 0
+}]
