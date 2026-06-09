@@ -12,8 +12,11 @@ export default function Home({ user, onLogout }) {
   const [modalidad, setModalidad] = useState('OFREZCO');
   const [enviando, setEnviando] = useState(false);
 
+  // ESTADO PARA EL FILTRO DE ANUNCIOS
+  const [filtro, setFiltro] = useState('TODOS'); // Puede ser: 'TODOS', 'MATERIAL', 'CONOCIMIENTO'
+
   // NUEVOS ESTADOS PARA LA EDICIÓN
-  const [editandoId, setEditandoId] = useState(null); // Guarda el ID si estamos editando, o null si es nuevo
+  const [editandoId, setEditandoId] = useState(null);
 
   // Función para cargar los anuncios de la base de datos
   const obtenerAnuncios = async () => {
@@ -34,6 +37,38 @@ export default function Home({ user, onLogout }) {
     obtenerAnuncios();
   }, []);
 
+  // Función para conectar con la ruta DELETE del backend para borrar el anuncio
+  const manejarBorrar = async (idAnuncio) => {
+    const confirmar = window.confirm('¿Estás seguro de que deseas eliminar este anuncio de forma permanente? 🗑️');
+    if (!confirmar) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const baseUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+
+      const response = await fetch(`${baseUrl}/api/posts/${idAnuncio}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) throw new Error(data.error || 'No se pudo eliminar el anuncio');
+
+      alert('¡Anuncio eliminado correctamente!');
+      
+      if (editandoId === idAnuncio) {
+        cancelarEdicion();
+      }
+
+      setAnuncios(anuncios.filter(anuncio => anuncio._id !== idAnuncio));
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
   // Función para cargar los datos de una tarjeta en el formulario para editar
   const cargarFormularioParaEditar = (anuncio) => {
     setEditandoId(anuncio._id);
@@ -41,7 +76,6 @@ export default function Home({ user, onLogout }) {
     setDescripcion(anuncio.descripcion);
     setTipo(anuncio.tipo);
     setModalidad(anuncio.modalidad);
-    // Hace scroll automático hacia arriba para que el usuario vea el formulario listo
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -63,8 +97,6 @@ export default function Home({ user, onLogout }) {
       const token = localStorage.getItem('token');
       const baseUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
-      // Si tenemos un editandoId la URL cambia para apuntar al recurso concreto (ej: /api/posts/123)
-      // y el método HTTP pasa a ser PUT o PATCH en lugar de POST
       const url = editandoId ? `${baseUrl}/api/posts/${editandoId}` : `${baseUrl}/api/posts`;
       const method = editandoId ? 'PUT' : 'POST';
 
@@ -79,7 +111,6 @@ export default function Home({ user, onLogout }) {
 
       if (!response.ok) throw new Error(editandoId ? 'Error al modificar el anuncio' : 'Error al publicar el anuncio');
 
-      // Limpiamos todo tras el éxito y refrescamos la lista
       cancelarEdicion();
       obtenerAnuncios();
     } catch (err) {
@@ -88,6 +119,12 @@ export default function Home({ user, onLogout }) {
       setEnviando(false);
     }
   };
+
+  // FILTRADO LÓGICO DE ANUNCIOS ANTES DE PINTARLOS
+  const anunciosFiltrados = anuncios.filter(anuncio => {
+    if (filtro === 'TODOS') return true;
+    return anuncio.tipo === filtro;
+  });
 
   return (
     <div className="dashboard-container p-6 bg-gray-50 min-h-screen">
@@ -158,21 +195,45 @@ export default function Home({ user, onLogout }) {
         </form>
       </div>
 
-      {/* LISTADO DE ANUNCIOS */}
+      <hr className="border-gray-200 my-8" />
+
+      {/* NUEVO: BOTONES VISUALES PARA FILTRAR EL TABLÓN */}
+      <div className="flex justify-center items-center gap-2 mb-6">
+        <span className="text-sm font-medium text-gray-500 mr-2">Filtrar por:</span>
+        <button 
+          onClick={() => setFiltro('TODOS')}
+          className={`px-4 py-1.5 rounded-full text-xs font-bold transition-colors ${filtro === 'TODOS' ? 'bg-gray-800 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'}`}
+        >
+          👀 Ver Todo
+        </button>
+        <button 
+          onClick={() => setFiltro('MATERIAL')}
+          className={`px-4 py-1.5 rounded-full text-xs font-bold transition-colors ${filtro === 'MATERIAL' ? 'bg-green-600 text-white' : 'bg-green-100 text-green-800 hover:bg-green-200'}`}
+        >
+          📦 Material
+        </button>
+        <button 
+          onClick={() => setFiltro('CONOCIMIENTO')}
+          className={`px-4 py-1.5 rounded-full text-xs font-bold transition-colors ${filtro === 'CONOCIMIENTO' ? 'bg-blue-600 text-white' : 'bg-blue-100 text-blue-800 hover:bg-blue-200'}`}
+        >
+          🧠 Conocimiento
+        </button>
+      </div>
+
+      {/* LISTADO DE ANUNCIOS FILTRADOS */}
       {loading && <div className="text-center py-10 font-medium text-gray-600">Cargando el tablón...</div>}
       {error && <div className="text-center py-10 text-red-600 font-medium">❌ Error: {error}</div>}
 
-      {!loading && !error && anuncios.length === 0 && (
-        <div className="text-center py-12 bg-white rounded-xl shadow-sm border border-gray-100 p-8">
-          <p className="text-xl font-semibold text-gray-700">¡Vaya, el tablón está vacío! 📭</p>
-          <p className="text-gray-500 mt-2 text-sm">Sé el primero en usar el formulario de arriba para publicar algo.</p>
+      {!loading && !error && anunciosFiltrados.length === 0 && (
+        <div className="text-center py-12 bg-white rounded-xl shadow-sm border border-gray-100 p-8 max-w-md mx-auto">
+          <p className="text-lg font-semibold text-gray-700">No hay anuncios aquí sueltos 📭</p>
+          <p className="text-gray-500 mt-1 text-xs">No hay publicaciones activas para la categoría seleccionada.</p>
         </div>
       )}
 
-      {!loading && !error && anuncios.length > 0 && (
+      {!loading && !error && anunciosFiltrados.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {anuncios.map((anuncio) => {
-            // Comprobamos si el anuncio pertenece al usuario conectado actualmente
+          {anunciosFiltrados.map((anuncio) => {
             const esMio = anuncio.autor?._id === user.id || anuncio.autor === user.id;
 
             return (
@@ -191,17 +252,34 @@ export default function Home({ user, onLogout }) {
                   </div>
                 </div>
 
-                {/* BOTÓN DE ACCIÓN SOLO SI ES NUESTRO ANUNCIO */}
-                {esMio && (
-                  <div className="px-4 pb-4 pt-2 bg-gray-50 border-t border-gray-100 flex justify-end">
-                    <button 
-                      onClick={() => cargarFormularioParaEditar(anuncio)}
-                      className="bg-amber-100 hover:bg-amber-200 text-amber-800 text-xs font-bold px-3 py-1.5 rounded transition-colors"
+                {/* SECCIÓN DE BOTONES INFERIORES */}
+                <div className="px-4 pb-4 pt-2 bg-gray-50 border-t border-gray-100 flex justify-end gap-2">
+                  {esMio ? (
+                    <>
+                      {/* Si el anuncio es mío: Puedo Editar y Borrar */}
+                      <button 
+                        onClick={() => cargarFormularioParaEditar(anuncio)}
+                        className="bg-amber-100 hover:bg-amber-200 text-amber-800 text-xs font-bold px-3 py-1.5 rounded transition-colors"
+                      >
+                        ✏️ Editar
+                      </button>
+                      <button 
+                        onClick={() => manejarBorrar(anuncio._id)}
+                        className="bg-red-100 hover:bg-red-200 text-red-800 text-xs font-bold px-3 py-1.5 rounded transition-colors"
+                      >
+                        🗑️ Borrar
+                      </button>
+                    </>
+                  ) : (
+                    /* NUEVO: Si el anuncio NO es mío, sale el botón de Contactar por correo (mailto:) */
+                    <a 
+                      href={`mailto:${anuncio.autor?.email || ''}?subject=[IEShare Betxí] Me interesa tu anuncio: ${encodeURIComponent(anuncio.titulo)}`}
+                      className="bg-green-600 hover:bg-green-700 text-white text-xs font-bold px-4 py-1.5 rounded shadow-sm transition-colors flex items-center gap-1"
                     >
-                      ✏️ Editar Anuncio
-                    </button>
-                  </div>
-                )}
+                      ✉️ Contactar por Email
+                    </a>
+                  )}
+                </div>
               </div>
             );
           })}
