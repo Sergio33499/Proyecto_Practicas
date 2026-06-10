@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast'; 
 import Login from "./pages/Login.jsx";
 import Register from "./pages/Register.jsx";
 import Home from "./pages/Home.jsx";
+import Favoritos from "./pages/Favoritos.jsx"; // IMPORTAMOS LA NUEVA PÁGINA
 import './App.css';
 
 function App() {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true); // Evita parpadeos mientras lee localStorage
+  const [loading, setLoading] = useState(true); 
 
   useEffect(() => {
-    // Comprobar si ya había una sesión guardada en el navegador
     const savedUser = localStorage.getItem('loggedUser');
     if (savedUser) {
       setUser(JSON.parse(savedUser));
@@ -36,26 +37,42 @@ function App() {
 
   return (
     <Router>
+      {/* Contenedor de notificaciones flotantes */}
+      <Toaster 
+        position="top-right" 
+        reverseOrder={false} 
+        toastOptions={{
+          className: 'font-sans text-sm border shadow-md',
+          duration: 4000,
+        }}
+      />
+
       <Routes>
-        {/* RUTA DE LOGIN: Si ya está logueado, lo redirige automáticamente al tablón */}
+        {/* RUTA DE LOGIN */}
         <Route 
           path="/login" 
           element={!user ? <Login onLogin={handleLogin} /> : <Navigate to="/" />} 
         />
 
-        {/* RUTA DE REGISTRO: Redirige al login tras registrarse */}
+        {/* RUTA DE REGISTRO */}
         <Route 
           path="/register" 
           element={!user ? <Register onRegisterSuccess={() => window.location.href = '/login'} /> : <Navigate to="/" />} 
         />
 
-        {/* RUTA RAÍZ (TABLÓN): Si NO está logueado, lo rebota al login protegiendo la página */}
+        {/* RUTA RAÍZ (TABLÓN PRINCIPAL) */}
         <Route 
           path="/" 
           element={user ? <Home user={user} onLogout={handleLogout} /> : <Navigate to="/login" />} 
         />
 
-        {/* CUALQUIER OTRA RUTA: Redirige al login por seguridad */}
+        {/* NUEVA RUTA PROTEGIDA PARA LA PÁGINA DE FAVORITOS */}
+        <Route 
+          path="/favoritos" 
+          element={user ? <Favoritos user={user} /> : <Navigate to="/login" />} 
+        />
+
+        {/* CUALQUIER OTRA RUTA */}
         <Route path="*" element={<Navigate to="/login" />} />
       </Routes>
     </Router>
